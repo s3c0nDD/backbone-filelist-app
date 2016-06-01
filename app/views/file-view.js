@@ -5,7 +5,7 @@ var
     // templates
     newFileTemplate = require('../templates/file_row.hbs'),
     tableHeaderNormal = require('../templates/table_head_normal.hbs'),
-    tableHeaderNewfile = require('../templates/table_head_newfile.hbs'),
+    tableRowNewfile = require('../templates/file_row_newfile.hbs'),
     // models
     fileModel = require('../models/file');
 
@@ -16,9 +16,9 @@ module.exports = Backbone.View.extend({
     el: "#app",
     counter: 0,
     events: {
-        // 'click button#new': 'changeTableHeader',
-        // 'click button#cancel': 'changeTableHeaderBack',
-        // 'click button#save': 'addItem'
+        'click button#new': 'addRowNewFile',
+        'click button#save-new': 'addItemNewFile',
+        'click button#cancel-new': 'removeRowNewFile'
     },
     files : [
         {"name": "file0"},
@@ -63,16 +63,25 @@ module.exports = Backbone.View.extend({
         });
     },
     
-    changeTableHeader: function () {
-        this.$el.find('#files-table-head').replaceWith(tableHeaderNewfile());
+    addRowNewFile: function () {
+        var $tbody = this.$el.find('tbody'),
+            $newfile_btn = $('#new');
+        $( tableRowNewfile() ).prependTo($tbody);
+        $newfile_btn.removeClass("active").addClass("disabled");
+        $('#filename-new').focus();
     },
 
-    changeTableHeaderBack: function () {
-        this.$el.find('#files-table-head').replaceWith(tableHeaderNormal());
+    removeRowNewFile: function () {
+        var $tbody = this.$el.find('tbody'),
+            $newfile_btn = $('#new');
+        $tbody.find('tr').first().remove();
+        $newfile_btn.removeClass("disabled").addClass("active");
     },
 
-    addItem: function(){
-        var input = this.$el.find('#filename').val();
+    addItemNewFile: function(){
+        var input = this.$el.find('#filename-new').val(),
+            $tbody = this.$el.find('tbody'),
+            $newfile_btn = $('#new');
         if(input) {
             this.counter = this.collection.size();
             // Add to collection
@@ -80,23 +89,29 @@ module.exports = Backbone.View.extend({
             item.set("id",this.counter);
             item.set("name", input);
             this.collection.add(item);
+            // Remove unnecessary first row
+            $tbody.find('tr').first().remove();
+            // Activate new folder button
+            $newfile_btn.removeClass("disabled").addClass("active");
             // Render view
             this.renderItem(this.counter, input);
-            // this.changeTableHeaderBack();
         }
     },
     
     renderItem: function (item_id, item_name) {
-        var string = newFileTemplate({ id: item_id, name: item_name});
-        this.$el.find('tbody').append(string);
+        var string = newFileTemplate({ id: item_id, name: item_name}),
+            $tbody = this.$el.find('tbody');
+        $(string).prependTo($tbody);
+        this.checkboxListener();
     },
 
     checkboxListener: function () {
-        var $rename_btn = $('#rename'),
-            $delete_btn = $('#delete'),
+        var 
             $checkbox_all = $('#checkbox-all'),
             $tbody = $('tbody'),
-            $all_rows = $tbody.find(':checkbox');
+            $all_rows = $tbody.find(':checkbox'),
+            $rename_btn = $('#rename'),
+            $delete_btn = $('#delete');
 
         // listener for main checkbox change
         $checkbox_all.on('change', function() {
