@@ -7,3 +7,7 @@
 @-moz-document url-prefix() {
     fieldset { display: table-cell; }
 }
+input[type='checkbox'] {
+    display: table-cell;
+    /* TODO: make checkboxes not change "display" to "inline-block" */
+}
