@@ -18,7 +18,9 @@ module.exports = Backbone.View.extend({
     events: {
         'click button#new': 'addRowNewFile',
         'click button#save-new': 'addItemNewFile',
-        'click button#cancel-new': 'removeRowNewFile'
+        'click button#cancel-new': 'removeRowNewFile',
+        // 'click button#rename': 'editSelectedFiles',
+        'click button#delete': 'deleteSelectedFiles'
     },
     files : [
         {"name": "file0"},
@@ -33,7 +35,6 @@ module.exports = Backbone.View.extend({
         this.counter = 0;
         // make mocks
         this.collection = new fileModel.FilesCollection();
-        // this.collection.bind('add', this.renderItem());
         this.makeMocks();
         // not all views are self-rendering. This one is
         this.render();
@@ -66,7 +67,8 @@ module.exports = Backbone.View.extend({
     addRowNewFile: function () {
         var $tbody = this.$el.find('tbody'),
             $newfile_btn = $('#new');
-        $( tableRowNewfile() ).prependTo($tbody);
+        this.counter = this.collection.size();
+        $( tableRowNewfile({ id: this.counter}) ).prependTo($tbody);
         $newfile_btn.removeClass("active").addClass("disabled");
         $('#filename-new').focus();
     },
@@ -82,7 +84,7 @@ module.exports = Backbone.View.extend({
         var input = this.$el.find('#filename-new').val(),
             $tbody = this.$el.find('tbody'),
             $newfile_btn = $('#new');
-        if(input) {
+        if (input) {
             this.counter = this.collection.size();
             // Add to collection
             var item = new fileModel.File();
@@ -95,6 +97,60 @@ module.exports = Backbone.View.extend({
             $newfile_btn.removeClass("disabled").addClass("active");
             // Render view
             this.renderItem(this.counter, input);
+            // checkbox's listeners reset
+            $tbody.find(':checkbox').off('change');
+            this.checkboxListener();
+        } else {
+            alert("Write some name!");
+        }
+    },
+
+    // TODO: editing selected files and saving changes to model and view after editing
+    // editSelectedFiles: function () {
+    //     var $tbody = this.$el.find('tbody'),
+    //         selectedCheckboxes = $tbody.find(":checkbox.isChecked");
+    //     console.log("selected checkboxes count: " + selectedCheckboxes.length);
+    //     selectedCheckboxes.each(function (index, value) {
+    //         console.log("index:" + index + ", data-index:" + $(this).attr('data-index'));
+    //         var $table_row = $(this).closest('tr');
+    //         $table_row.remove();
+    //     })
+    // },
+
+    deleteSelectedFiles: function () {
+        var $tbody = this.$el.find('tbody'),
+            selectedCheckboxes = $tbody.find(":checkbox.isChecked"),
+            collection = this.collection;
+        // if confirm dialog was said "ok"
+        if (confirm("Are you sure you want to delete the selected files?") == true) {
+            // delete each row with checkbox checked
+            selectedCheckboxes.each(function (i, val) {
+                var $this = $(this),
+                    $table_row = $this.closest('tr');
+                $table_row.remove();
+                // remember to get TRUE(!) index of item collection to remove
+                var index_remove = $this.attr('data-index'),  // which is "data-index" attr of checkbox
+                    item_to_remove = collection.at(index_remove);
+                console.log("removed id["+index_remove+"] name: " 
+                    + collection.at(index_remove).get('name'));
+                item_to_remove.trigger('destroy', item_to_remove);
+            });
+            // console.log( "Collection size now: " + collection.size());
+            this.counter = this.collection.size();
+            // correct remaining checkboxes...
+            var allCheckboxes = $tbody.find(":checkbox");
+            // by setting attr 'data-index' (in reversed order 'cause on html they're upside down)
+            $(allCheckboxes.get().reverse()).each(function (i, val) {
+                $(this).attr('data-index', i);
+            });
+            // ...and correct models ids
+            for(var i = 0; i < this.collection.size(); i++) {
+                collection.at(i).set({'id': i });
+                console.log("collection["+i+"]: " + collection.at(i).get('name'));
+            }
+            // checkbox's listeners reset
+            $tbody.find(':checkbox').off('change');
+            this.checkboxListener();
         }
     },
     
@@ -102,7 +158,6 @@ module.exports = Backbone.View.extend({
         var string = newFileTemplate({ id: item_id, name: item_name}),
             $tbody = this.$el.find('tbody');
         $(string).prependTo($tbody);
-        this.checkboxListener();
     },
 
     checkboxListener: function () {
@@ -134,12 +189,12 @@ module.exports = Backbone.View.extend({
 
         // listener for row checkboxes change
         $tbody.find(':checkbox').on('change', function () {
-            var $this = $(this);
+            var $this = $(this),
+                checked_rows = $tbody.find(':checkbox:checked');
             if ( $this.is(':checked') )
                 $this.prop('checked', true).addClass('isChecked');
             else if ( $this.not(':checked') )
                 $this.prop('checked', false).removeClass('isChecked');
-            var checked_rows = $tbody.find(':checkbox:checked');
             // if all checkboxes are NOT selected..
             if ( checked_rows.length == 0 ) {
                 // ..then just disable buttons
@@ -152,7 +207,7 @@ module.exports = Backbone.View.extend({
                 $rename_btn.removeClass('disabled').addClass('active');
                 $delete_btn.removeClass('disabled').addClass('active');
                 // then: check if all table rows checkboxes are checked...
-                console.log("Lenght:" + $all_rows.length + " and checked:" + checked_rows.length);
+                console.log("Length:" + $all_rows.length + " and checked:" + checked_rows.length);
                 // ...so we can change main checkbox accordingly
                 if ($all_rows.length == checked_rows.length)
                     $checkbox_all.prop('checked', true).addClass('isChecked');
