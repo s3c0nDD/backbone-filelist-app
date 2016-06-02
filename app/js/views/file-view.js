@@ -3,11 +3,10 @@ var
     $ = require('jquery'),
     _ = require('lodash'),
     // templates
-    tableRowTemplate = require('../templates/file_row.hbs'),
-    tableHeaderNormal = require('../templates/table_head_normal.hbs'),
-    tableRowNewFile = require('../templates/file_row_newfile.hbs'),
-    tableRowEditFile = require('../templates/file_row_editfile.hbs');
-
+    tableRowTemplate = require('../../templates/file_row.hbs'),
+    tableHeaderNormal = require('../../templates/table_head_normal.hbs'),
+    tableRowNewFile = require('../../templates/file_row_newfile.hbs'),
+    tableRowEditFile = require('../../templates/file_row_editfile.hbs'),
     // models
     fileModel = require('../models/file');
 
@@ -59,8 +58,8 @@ module.exports = Backbone.View.extend({
         var self = this;
         $.each(this.files, function(index, value){
             var item = new fileModel.File();
-            item.set("id", index);
-            item.set("name", value["name"]);
+            item.set('id', index);
+            item.set('name', value.name);
             self.collection.add(item);
             // console.log('Position: ' + index + ', this value: ' + value["name"]);
         });
@@ -123,7 +122,7 @@ module.exports = Backbone.View.extend({
                 item_id = item_to_edit.get("id"),
                 item_name = item_to_edit.get("name"),
                 string = tableRowEditFile({ id: item_id, name: item_name}); // edit template
-            console.log("id: " + item_id + " name: " + item_name)
+            console.log("id: " + item_id + " name: " + item_name);
             console.log("EDIT data-index:" + index_edit);
             $table_row.replaceWith(string);
         });
@@ -160,14 +159,18 @@ module.exports = Backbone.View.extend({
             $tbody.find(':checkbox').off('change');
             $app.checkboxListener();
         });
+
+        // deselect main checkbox
+        $checkbox_all.prop('checked', false).removeClass('isChecked');
     },
 
     deleteSelectedFiles: function () {
         var $tbody = this.$el.find('tbody'),
+            $checkbox_all = $('#checkbox-all'),
             selectedCheckboxes = $tbody.find(':checkbox.isChecked'),
             collection = this.collection;
         // if confirm dialog was said "ok"
-        if (confirm('Are you sure you want to delete the selected files?') == true) {
+        if (confirm('Are you sure you want to delete the selected files?') === true) {
             // delete each row with checkbox checked
             selectedCheckboxes.each(function (i, val) {
                 var $this = $(this),
@@ -176,8 +179,7 @@ module.exports = Backbone.View.extend({
                 // remember to get TRUE(!) index of item collection to remove..
                 var index_remove = $this.attr('data-index'),  // ..which is "data-index" of checkbox
                     item_to_remove = collection.at(index_remove);
-                console.log('removed id['+index_remove+'] name: '
-                    + collection.at(index_remove).get('name'));
+                console.log('removed id['+index_remove+'] name: '+collection.at(index_remove).get('name'));
                 item_to_remove.trigger('destroy', item_to_remove);
             });
             // console.log( "Collection size now: " + collection.size());
@@ -193,6 +195,8 @@ module.exports = Backbone.View.extend({
                 collection.at(i).set({'id': i });
                 console.log('collection['+i+"]: " + collection.at(i).get('name'));
             }
+            // deselect main checkbox
+            $checkbox_all.prop('checked', false).removeClass('isChecked');
             // checkbox's listeners reset
             $tbody.find(':checkbox').off('change');
             this.checkboxListener();
@@ -241,13 +245,13 @@ module.exports = Backbone.View.extend({
             else if ( $this.not(':checked') )
                 $this.prop('checked', false).removeClass('isChecked');
             // if all checkboxes are NOT selected..
-            if ( checked_rows.length == 0 ) {
+            if ( checked_rows.length === 0 ) {
                 // ..then just disable buttons
                 $rename_btn.removeClass("active").addClass("disabled");
                 $delete_btn.removeClass("active").addClass("disabled");
             }
             // if any checkbox is checked we have to do things and even check more...
-            if ( checked_rows.length != 0 ) {
+            if ( checked_rows.length !== 0 ) {
                 // firstly enable buttons
                 $rename_btn.removeClass('disabled').addClass('active');
                 $delete_btn.removeClass('disabled').addClass('active');

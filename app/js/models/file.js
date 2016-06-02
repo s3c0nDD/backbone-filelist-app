@@ -28,7 +28,7 @@ var Backbone = require('backbone'),
             this.on('change', function(model) {
                 console.log('something got changed in collection');
             });
-        },
+        }
     });
 
 Backbone.$ = $;

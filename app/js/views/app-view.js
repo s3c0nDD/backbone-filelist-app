@@ -1,8 +1,7 @@
 var Backbone = require('backbone'),
     $ = require('jquery'),
     fileView = require('./file-view'),
-    models = require('../models/file'),
-    template = require('../templates/index.hbs');
+    template = require('../../templates/index.hbs');
 
 Backbone.$ = $;
 

@@ -1,3 +1,8 @@
 /.idea
 /node_modules
-bundle.js
+/bundle.js
+/sourceMap.map
+/composite.all.min.js
+/npm-debug.log
+/bundle.min.js
+/app/assets/css/style.min.css
