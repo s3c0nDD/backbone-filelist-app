@@ -43,6 +43,6 @@
     "load-grunt-tasks": "^3.5.0"
   },
   "scripts": {
-    "preinstall": "npm install -g grunt-cli"
+    "preinstall": "sudo npm install -g grunt-cli"
   }
 }
